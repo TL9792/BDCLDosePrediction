@@ -195,5 +195,5 @@ class Net(nn.Module):
     def model_name(self):
         return '3D-UNet'
 
-    def model_description(self):
-        return 'Global Dose Network (GDN) for dose prediction.' 
+    def model_description(self): 
+        return 'Beam dose network (BDN) for dose prediction.' 
