@@ -3,7 +3,7 @@ import torch
 def reconstruct(inputs, coarse_dose):
     """
     inputs: b,9,128,128,128
-    caorse_dose: b,1,128,128,128
+    coarse_dose: b,1,128,128,128
     """
     a = torch.sum(inputs>0, dim=1).unsqueeze(1)
 
