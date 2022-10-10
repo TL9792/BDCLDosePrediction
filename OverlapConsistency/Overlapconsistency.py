@@ -1,6 +1,6 @@
 import torch
 
-def consistency(pd,msk):
+def consistloss(pd,msk):
     " pd is the predicted beam voters, and msk represents beam masks"
     
     sum_pd = torch.sum(pd, dim=1).unsqueeze(1)
