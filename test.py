@@ -12,7 +12,7 @@ import pandas as pd
 import SimpleITK as sitk
 from Network.BeamDoseNetwork.ResUnet import RUNet,RUnet_encoder,RUnet_decoder
 from provided_code.data_loader import KBPDataset
-from provided_code.dose_evaluation import EvaluateDose
+from Evalutaion.DoseScoreDVHScore import EvaluateDose
 from provided_code.general_functions import get_paths, make_directory_and_return_path, sparse_vector_function
 from MultiBeamVoting import reconstruct
 import pdb
@@ -22,7 +22,7 @@ from torch.utils.tensorboard import SummaryWriter
 if __name__ == '__main__':
   
 
-    testing_data_dir = "../Data/test-pats/"
+    testing_data_dir = "Data/test-pats/"
     best_model_path = ''
     # Define project directories
     # TODO: Must define the path of where the data is stored.
@@ -112,7 +112,7 @@ if __name__ == '__main__':
             new_gt.SetSpacing(spacing)
             new_error = sitk.GetImageFromArray(np.flip(np.squeeze(error_map[i]),0))
             new_error.SetSpacing(spacing)
-            sitk.WriteImage(new_pd,test_imgs_dir+'/pred_{}.nii.gz'.format(pat_id[i]))
+            sitk.WriteImage(new_pd, test_imgs_dir+'/pred_{}.nii.gz'.format(pat_id[i]))
             sitk.WriteImage(new_gt, test_imgs_dir+'/gt_{}.nii.gz'.format(pat_id[i]))
             sitk.WriteImage(new_error, test_imgs_dir+'/error_{}.nii.gz'.format(pat_id[i]))
 
