@@ -24,9 +24,9 @@ def loss(pd_dose,gt_dose, dose_mask, roi, spacing, coarse_dose, gtimg, whole_mas
     doseloss = mae_loss(pd_dose, gt_dose, dose_mask)
     Lr = 0.5*mae_loss(reimg, gtimg, whole_mask)
     Lcs = 0.1*consistloss(pd_dose,dose_mask)
-    cdvhloss = 0.1*dvh_loss_c(reimg,gtimg, whole_mask)
-    fdvhloss = 0.5*dvh_loss_v(reimg, gtimg, roi, spacing)
+    Lcdvh = 0.1*dvh_loss_c(reimg,gtimg, whole_mask)
+    Lfdvh = 0.5*dvh_loss_v(reimg, gtimg, roi, spacing)
     Le = 0.5*gradient_loss(pd_dose, gt_dose, dose_mask)
-    return (doseloss+Lr+Lcs+cdvhloss+fdvhloss+Le),reimg
+    return (doseloss+Lr+Lcs+Lcdvh+Lfdvh+Le),reimg
 
 
