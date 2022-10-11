@@ -8,7 +8,15 @@ The implementation of the paper "Beam-wise Dose Composition Learning for Head an
 
 Dose score  |  DVH score    
 ----  |  ----
-2.066±0.900  |  0.977±1.091
+2.066±0.900  |  0.977±1.091  
+
+## Requirements  
+* torch >= 1.9.1
+* numpy
+* SimpleITK
+* pandas
+* os
+
 
 ## Usage  
 1. Training and Validation:  
