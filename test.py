@@ -23,7 +23,6 @@ if __name__ == '__main__':
   
 
     testing_data_dir = "Data/test-pats/"
-    best_model_path = ''
     # Define project directories
     # TODO: Must define the path of where the data is stored.
     primary_directory = '{}'.format(sys.path[0])
@@ -47,6 +46,7 @@ if __name__ == '__main__':
     net.cuda()
     model_name = net.module.model_name()
     model_desc = sys.argv[1]
+    best_model_path = sys.argv[2]
 
     # Prepare the data directory
     test_data_paths = get_paths(testing_data_dir, ext='') 
@@ -82,7 +82,6 @@ if __name__ == '__main__':
 
         # convert to GPU memory
         img = img.cuda()
-        roi = roi.cuda()
         ptv = ptv.cuda()
         oar = oar.cuda()
         direction_gt = direction_gt.cuda()
