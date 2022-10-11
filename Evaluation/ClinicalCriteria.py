@@ -39,7 +39,7 @@ def metric_PTV(dose,roi):
         V_pi = len(np.where(dose>=56.)[0])   # the volume of the prescription isodose
         Volume_pi = np.zeros((128,128,128)); Volume_pi[np.where(dose>=56.)] = 1  # the array of the prescription isodose
         V_inter = len(np.nonzero(Volume_pi * roi)[0])  # the intersection volume of the target volume and the prescription isodose volume   
-        CI = (V_inter * V_inter) / (V_t * V_pi)  
+        CI = (V_inter * V_inter + 1e-7) / (V_t * V_pi +1e-7)  
         ### calculate HI metric
         D2 = np.percentile(dose[np.nonzero(roi)],98)  # the minimum dose received by 2% of the PTV volume
         D98 = np.percentile(dose[np.nonzero(roi)],2)  # the minimum dose received by 98% of the PTV volume
@@ -54,7 +54,8 @@ def metric_PTV(dose,roi):
     return CI, HI, D99, D95, D1
 
     
-#### Calculate clinical metircs for one case
+
+#### Calculate there for one case
 def cal_metric(pd,gt,roi):
     """
     pd is the predicted dose image, and gt is the ground truth dose image
@@ -64,24 +65,22 @@ def cal_metric(pd,gt,roi):
     """
 
     HI_list = []; CI_list = []; D99_list = []; D95_list = []; D1_list = []; Dmean_list = []; D01cc_list = []
-    for i in len(range(roi)):
+    for i in range(len(roi)):
         if i < 7:
-            pd_Dmean, pd_D01cc = metric_OAR(pd,roi); gt_Dmean, gt_D01cc = metric_OAR(gt,roi)
+            pd_Dmean, pd_D01cc = metric_OAR(pd,roi[i]); gt_Dmean, gt_D01cc = metric_OAR(gt,roi[i])
             ## calculate the difference between the prediction and the ground truth for OAR dose coverage
             diff_Dmean = np.abs(pd_Dmean-gt_Dmean); diff_D01cc = np.abs(pd_D01cc-gt_D01cc)
             Dmean_list.append(diff_Dmean); D01cc_list.append(diff_D01cc)
         if i > 6:
-            pd_CI, pd_HI, pd_D99, pd_D95, pd_D1 = metric_PTV(pd,roi)
-            gt_CI, gt_HI, gt_D99, gt_D95, gt_D1 = metric_PTV(gt,roi)
+            pd_CI, pd_HI, pd_D99, pd_D95, pd_D1 = metric_PTV(pd,roi[i])
+            gt_CI, gt_HI, gt_D99, gt_D95, gt_D1 = metric_PTV(gt,roi[i])
             ## calculate the difference between the prediction and the ground truth for PTV dose coverage
             diff_CI = np.abs(pd_CI-gt_CI); diff_HI = np.abs(pd_HI-gt_HI); diff_D99 = np.abs(pd_D99-gt_D99)
             diff_D95 = np.abs(pd_D95-gt_D95); diff_D1 = np.abs(pd_D1-gt_D1)
             CI_list.append(diff_CI); HI_list.append(diff_HI); D99_list.append(diff_D99)
             D95_list.append(diff_D95); D1_list.append(diff_D1)
     
-    return sum(HI_list)/len(HI_list),sum(CI_list)/len(CI_list),sum(D99_list)/len(D99_list),sum(D95_list)/len(D95_list),sum(D1_list)/len(D1_list),sum(Dmean_list)/len(Dmean_list),sum(D01cc_list)/len(D01cc_list)  
-            
+    return sum(HI_list)/len(HI_list),sum(CI_list)/len(CI_list),sum(D99_list)/len(D99_list),sum(D95_list)/len(D95_list),sum(D1_list)/len(D1_list),sum(Dmean_list)/len(Dmean_list),sum(D01cc_list)/len(D01cc_list)
 
 
-    
-    
+
