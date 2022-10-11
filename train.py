@@ -12,14 +12,10 @@ import pandas as pd
 import SimpleITK as sitk
 from Network.BeamDoseNetwork.ResUnet import RUNet,RUnet_encoder,RUnet_decoder
 from provided_code.data_loader import KBPDataset
-from provided_code.dose_evaluation import EvaluateDose
+from Evaluation.DoseScoreDVHScore import EvaluateDose
 from provided_code.general_functions import get_paths, make_directory_and_return_path, sparse_vector_function
 from MultiBeamVoting import reconstruct
 from Loss import loss
-# from DVH_Calibration.Value_basedDVHLoss import dvh_loss_v
-# from DVH_Calibration.Value_basedDVHLoss import dvh_loss_v
-# from provided_code.final_loss import loss_consist5,loss_cdvh1,loss_cdvh2,loss_cdvh3,loss_cdvh4,loss_cdvh5
-# from provided_code.final_loss import loss_fdvh1,loss_fdvh2,loss_fdvh3,loss_fdvh4,loss_fdvh5
 # import cv2
 import pdb
 from torch.utils.tensorboard import SummaryWriter
