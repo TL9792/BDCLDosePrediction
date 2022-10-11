@@ -130,14 +130,8 @@ if __name__ == '__main__':
         # training initialization
         print("Training phase ...")
         epoch_loss = 0
-        epoch_doseloss = 0
-        epoch_reconsloss= 0
-        epoch_consistloss = 0
-        epoch_cdvhloss = 0
-        epoch_fdvhloss = 0
-        epoch_gradloss = 0
         epoch_loss_num = 0
-        DVH_loss = 0
+        
         train_evaluator = EvaluateDose(dataset_train)
 
         # see if eval
@@ -176,17 +170,11 @@ if __name__ == '__main__':
             pd_dose = pd_dose * direction_mask
 
             # compute loss
-            loss, doseloss,reconsloss,consistloss,cdvhloss, fdvhloss,gradloss,reimg = loss(pd_dose, direction_gt, direction_mask, roi, spacing, coarse_dose, gt_dose, dose_mask)
+            loss, reimg = loss(pd_dose, direction_gt, direction_mask, roi, spacing, coarse_dose, gt_dose, dose_mask)
             reimg = reimg.data.cpu().numpy().copy()
             gt_dose = gt_dose.data.cpu().numpy().copy()
 
             epoch_loss += n * loss.item()
-            epoch_doseloss += n * doseloss.item()
-            epoch_reconsloss += n * reconsloss.item()
-            epoch_consistloss += n * consistloss.item()
-            epoch_cdvhloss += n * cdvhloss.item()
-            epoch_fdvhloss += n * fdvhloss.item()
-            epoch_gradloss += n * gradloss.item()
 
             epoch_loss_num += n
             train_evaluator.append_sample(reimg * dose_scale_factor, batch, gt_dose * dose_scale_factor)
@@ -198,21 +186,9 @@ if __name__ == '__main__':
 
         # calculate train loss and train metric
         train_loss = epoch_loss / epoch_loss_num
-        train_doseloss = epoch_doseloss / epoch_loss_num
-        train_reconsloss = epoch_reconsloss / epoch_loss_num
-        train_consistloss = epoch_consistloss / epoch_loss_num
-        train_cdvhloss = epoch_cdvhloss / epoch_loss_num
-        train_fdvhloss = epoch_fdvhloss / epoch_loss_num
-        train_gradloss = epoch_gradloss / epoch_loss_num
 
-        train_dvh_score, train_dose_score,train_doselist,train_dvhlist = train_evaluator.make_metrics()
+        train_dvh_score, train_dose_score = train_evaluator.make_metrics()
         writer.add_scalar('loss/train', train_loss, epoch)
-        writer.add_scalar('doseloss/train', train_doseloss, epoch)
-        writer.add_scalar('reconsloss/train', train_reconsloss, epoch)
-        writer.add_scalar('consistloss/train', train_consistloss, epoch)
-        writer.add_scalar('cdvhloss/train', train_cdvhloss, epoch)
-        writer.add_scalar('fdvhloss/train', train_fdvhloss, epoch)
-        writer.add_scalar('gradloss/train', train_gradloss, epoch)
         writer.add_scalar('dose_score/train_dose_score', train_dose_score, epoch)
         writer.add_scalar('dvh_score/train_dvh_score', train_dvh_score, epoch)
 
@@ -230,12 +206,6 @@ if __name__ == '__main__':
                 net.eval()
                 val_epoch_loss_num = 0
                 val_epoch_loss = 0
-                val_epoch_doseloss = 0
-                val_epoch_reconsloss = 0
-                val_epoch_consistloss = 0
-                val_epoch_cdvhloss = 0
-                val_epoch_fdvhloss = 0
-                val_epoch_gradloss = 0
                 val_evaluator = EvaluateDose(dataset_validation)
 
                 for batch_id, batch in enumerate(data_loader_validation):
@@ -248,7 +218,6 @@ if __name__ == '__main__':
                     direction_mask = batch['directions']
                     gt_dose = batch['dose'] / dose_scale_factor
                     coarse_dose = batch['coarse_dose'] / dose_scale_factor
-                    # direction = direction_mask
                     direction_gt = direction_mask * gt_dose
                     dose_mask = batch['possible_dose_mask']
                     spacing = batch['voxel_dimensions']
@@ -259,7 +228,6 @@ if __name__ == '__main__':
                     roi = roi.cuda()
                     ptv = ptv.cuda()
                     oar = oar.cuda()
-                    # direction = direction.cuda()
                     dose_mask = dose_mask.cuda()
                     direction_gt = direction_gt.cuda()
                     gt_dose = gt_dose.cuda()
@@ -272,37 +240,19 @@ if __name__ == '__main__':
 
 
                     # compute loss
-                    loss, doseloss,reconsloss,consistloss,cdvhloss, fdvhloss,gradloss,reimg = loss(pd_dose, direction_gt, direction_mask, roi, spacing, coarse_dose, gt_dose, dose_mask)
+                    loss, reimg = loss(pd_dose, direction_gt, direction_mask, roi, spacing, coarse_dose, gt_dose, dose_mask)
                     reimg = reimg.data.cpu().numpy().copy()
                     gt_dose = gt_dose.data.cpu().numpy().copy()
 
                     val_epoch_loss += n * loss.item()
-                    val_epoch_doseloss += n * doseloss.item()
-                    val_epoch_reconsloss += n * reconsloss.item()
-                    val_epoch_consistloss += n * consistloss.item()
-                    val_epoch_cdvhloss += n * cdvhloss.item()
-                    val_epoch_fdvhloss += n * fdvhloss.item()
-                    val_epoch_gradloss += n * gradloss.item()
                     val_epoch_loss_num += n
                     val_evaluator.append_sample(reimg * dose_scale_factor, batch, gt_dose * dose_scale_factor)
 
                 # calculate validation metric and loss
                 valuation_loss = val_epoch_loss / val_epoch_loss_num
-                valuation_doseloss = val_epoch_doseloss / val_epoch_loss_num
-                valuation_reconsloss = val_epoch_reconsloss / val_epoch_loss_num
-                valuation_consistloss = val_epoch_consistloss / val_epoch_loss_num
-                valuation_cdvhloss = val_epoch_cdvhloss / val_epoch_loss_num
-                valuation_fdvhloss = val_epoch_fdvhloss / val_epoch_loss_num
-                valuation_gradloss = val_epoch_gradloss / val_epoch_loss_num
 
-                val_dvh_score, val_dose_score, val_doselist, val_dvhlist = val_evaluator.make_metrics()
+                val_dvh_score, val_dose_score = val_evaluator.make_metrics()
                 writer.add_scalar('loss/val', valuation_loss, epoch)
-                writer.add_scalar('doseloss/val', valuation_doseloss, epoch)
-                writer.add_scalar('reconsloss/val', valuation_reconsloss, epoch)
-                writer.add_scalar('consistloss/val', valuation_consistloss, epoch)
-                writer.add_scalar('cdvhloss/val', valuation_cdvhloss, epoch)
-                writer.add_scalar('fdvhloss/val', valuation_fdvhloss, epoch)
-                writer.add_scalar('gradloss/val', valuation_gradloss, epoch)
                 writer.add_scalar('dose_score/val_dose_score', val_dose_score, epoch)
                 writer.add_scalar('dvh_score/val_dvh_score', val_dvh_score, epoch)
 
