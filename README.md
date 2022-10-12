@@ -31,5 +31,5 @@ Dose score  |  DVH score
    The predicted results will be saved in `/result/modelname_notes/test-results-images/`  
 
 ## Contact  
-Please contact me for free if you have any questions, email: 1963373350@qq.com.
+Please email us with any questions, email: 1963373350@qq.com.
 
