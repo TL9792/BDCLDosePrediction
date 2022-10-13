@@ -1,7 +1,9 @@
-import torch
-
 def consistloss(pd,msk):
-    " pd is the predicted beam voters, and msk represents beam masks"
+    """
+    pd is the predicted beam voters, and msk represents beam masks
+    pd: b, 9, 128, 128, 128
+    msk: b, 9, 128, 128, 128
+    """
     
     sum_pd = torch.sum(pd, dim=1).unsqueeze(1)
     sum_msk = torch.sum(msk, dim=1).unsqueeze(1)
@@ -14,5 +16,4 @@ def consistloss(pd,msk):
     loss = (torch.sum(diff) / torch.sum(overlap_msk))
 
     return loss
-    
   
