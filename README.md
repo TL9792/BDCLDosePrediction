@@ -1,10 +1,10 @@
 # BDCLDosePrediction
-The implementation of the paper "Beam-wise Dose Composition Learning for Head and Neck Cancer Radiotherapy Planning" in Pytorch.
+The implementation of the paper "Beam-wise Dose Composition Learning for Head and Neck Cancer Dose Prediction in Radiotherapy" in Pytorch.
 ## Performance
 * The comparison result of dose distribution map with state-of-the-art methods.
 <img src="https://github.com/TL9792/BDCLDosePrediction/blob/main/dosemap.png" width="800px">  
 
-* The quantitative result in terms of two official metrics from the [AAMP OpenKBP-2020 Challenge](https://competitions.codalab.org/competitions/23428#results), i.e., Dose score and DVH score. Our method has superior performance compared with other state-of-the-art methods.
+* The quantitative result in terms of two official metrics from the [AAMP OpenKBP-2020 Challenge](https://competitions.codalab.org/competitions/23428#results), i.e., Dose score and DVH score. Our method achieves superior performance compared with other state-of-the-art methods.
 
 Dose score  |  DVH score    
 ----  |  ----
@@ -12,5 +12,5 @@ Dose score  |  DVH score
 
  
 ## Contact  
-Please email us with any questions, email: 1963373350@qq.com.
+Please email us with any questions for free, email: tenglin2023@shanghaitech.edu.cn.
 
