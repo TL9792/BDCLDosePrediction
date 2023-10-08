@@ -6,10 +6,11 @@ import torch.nn.functional as F
 from torch.nn.modules import padding
 from torch.utils.data.dataset import ConcatDataset
 from MultiBeamVoting import reconstruct
-from OverlapConsistency import consistloss
+from OverlapConsistency.Overlapconsistency import consistloss
 from EdgeEnhancement.GradientLoss import gradient_loss
 from DVH_Calibration.Value_basedDVHLoss import dvh_loss_v
 from DVH_Calibration.Criteria_basedDVHLoss import dvh_loss_c
+
 
 
 def mae_loss(pd, gt, dose_mask):
@@ -21,7 +22,7 @@ def mae_loss(pd, gt, dose_mask):
     return diff_abs.sum() / dose_mask.sum()
   
   
-def loss(pd_dose,gt_dose, dose_mask, roi, spacing, coarse_dose, gtimg, whole_mask):
+def loss(pd_dose, gt_dose, dose_mask, roi, spacing, coarse_dose, gtimg, whole_mask): 
     """
     pd_dose is the predicted nine beam voters, gt_dose is the ground-truth nine beam voters, dose mask is the beam masks
     roi includes ten roi masks
@@ -30,14 +31,14 @@ def loss(pd_dose,gt_dose, dose_mask, roi, spacing, coarse_dose, gtimg, whole_mas
     whole_mask represents the dose make over the whole-image space
     reimg represents the fine dose distribution map 
     """
-    
-    reimg = reconstruct(pd_dose, coarse_dose)
-    doseloss = mae_loss(pd_dose, gt_dose, dose_mask)
-    Lr = 0.5*mae_loss(reimg, gtimg, whole_mask)
-    Lcs = 0.1*consistloss(pd_dose,dose_mask)
-    Lcdvh = 0.1*dvh_loss_c(reimg,gtimg, whole_mask)
-    Lfdvh = 0.5*dvh_loss_v(reimg, gtimg, roi, spacing)
-    Le = 0.5*gradient_loss(pd_dose, gt_dose, dose_mask)
-    return (doseloss+Lr+Lcs+Lcdvh+Lfdvh+Le),reimg
+    # original parameters [1, 0.5, 0.1, 0.1, 0.5, 0.5]
+    reimg = reconstruct(pd_dose, coarse_dose) 
+    doseloss = mae_loss(pd_dose, gt_dose, dose_mask) 
+    Lr = 0.5*mae_loss(reimg, gtimg, whole_mask) 
+    Lcs = 0.1*consistloss(pd_dose,dose_mask) 
+    Lcdvh = 0.5*dvh_loss_c(reimg,gtimg, whole_mask,spacing) 
+    Lfdvh = 0.2*dvh_loss_v(reimg, gtimg, roi)  
+    Le = 0.03*gradient_loss(pd_dose, gt_dose, dose_mask) 
+    return (doseloss+Lr+Lcs+Lcdvh+Lfdvh+Le),reimg  
 
 
