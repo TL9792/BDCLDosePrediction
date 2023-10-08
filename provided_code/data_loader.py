@@ -25,8 +25,8 @@ import cv2
 import torchio
 import SimpleITK as sitk
 
-dist_max_ct = 51
-dist_max_oar = 49
+# dist_max_ct = 51
+# dist_max_oar = 49
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -34,7 +34,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 class KBPDataset(data.Dataset):
     """Generates data for tensorflow"""
 
-    def __init__(self, file_paths_list, flipped=False, rotate=False, noise=False, deformation=False, patient_shape=(128, 128, 128), ct_range=[-400, 2400],
+    def __init__(self, file_paths_list, flipped=False, rotate=False, noise=False, deformation=False, patient_shape=(128, 128, 128), ct_range=[-400, 400],
                  shuffle=True, mode_name='training_model'):
         """Initialize the DataLoader class, which loads the data for OpenKBP
         :param file_paths_list: list of the directories or single files where data for each patient is stored
@@ -123,7 +123,7 @@ class KBPDataset(data.Dataset):
                   '\'predicted_dose\', or \'evaluation\'')
 
 
-    def __getitem__(self, index):
+    def __getitem__(self, index): 
         """Generates a data sample containing batch_size samples X : (n_samples, *dim, n_channels)
         :param file_paths_to_load: the paths of the files to be loaded
         :return: a dictionary of all the loaded files
@@ -156,7 +156,6 @@ class KBPDataset(data.Dataset):
         # store ptv oar numpy
         data_sample['ptv'] = ptv
         data_sample['oar'] = oar
-
 
         # flip
         if self.if_flipped:
@@ -208,7 +207,7 @@ class KBPDataset(data.Dataset):
         return len(self.file_paths_list)
 
     def save(self, data_sample): 
-        out = Path('/public/bme/home/v-tenglin/BDCLDosePrediction/Data/save/')
+        out = Path('Data/save/')
         # if os.path.exists(out):
         #     shutil.rmtree(out)  # delete output folder
         # os.makedirs(out)  # make new output folder
@@ -235,7 +234,7 @@ class KBPDataset(data.Dataset):
         ctt = sitk.GetImageFromArray(np.squeeze(source.astype(float)))
         ctt.SetSpacing(spacing)
         sitk.WriteImage(ctt,
-        '/public/bme/home/v-tenglin/BDCLDosePrediction/Data/save/{}_{}.nii.gz'.format(str(id), str(obj)))                                                                                
+        'Data/save/{}_{}.nii.gz'.format(str(id), str(obj)))                                                                                
 
 
     def addnoise(self, img):
@@ -278,45 +277,6 @@ class KBPDataset(data.Dataset):
         img_rota = np.array(list_img)
         return img_rota
 
-    def translate(self, img, dosemask, max_shift, list_pad_value):
-        exist_mask = np.where(dosemask > 0)
-        ori_z, ori_h, ori_w = img.shape[1:]
-
-        bz = min(max_shift - 1, np.min(exist_mask[0]))
-        ez = max(ori_z - 1 - max_shift, np.max(exist_mask[0]))
-        bh = min(max_shift - 1, np.min(exist_mask[1]))
-        eh = max(ori_h - 1 - max_shift, np.max(exist_mask[1]))
-        bw = min(max_shift - 1, np.min(exist_mask[2]))
-        ew = max(ori_w - 1 - max_shift, np.max(exist_mask[2]))
-
-        img = img[:, bz:ez + 1, bh:eh + 1, bw:ew + 1]
-
-        # Pad to original size
-        img = self.random_pad_to_size_3d(   img,
-                                            target_size=[ori_z, ori_h, ori_w])
-        return img
-
-    def random_pad_to_size_3d(self, img, target_size):
-        ori_z, ori_h, ori_w = img.shape[1:]
-        new_z, new_h, new_w = target_size[:]
-
-        pad_z = new_z - ori_z
-        pad_h = new_h - ori_h
-        pad_w = new_w - ori_w
-
-        pad_z_1 = random.randint(0, pad_z)
-        pad_h_1 = random.randint(0, pad_h)
-        pad_w_1 = random.randint(0, pad_w)
-
-        pad_z_2 = pad_z - pad_z_1
-        pad_h_2 = pad_h - pad_h_1
-        pad_w_2 = pad_w - pad_w_1
-
-        output = np.pad(    img,
-                            ((0, 0), (pad_z_1, pad_z_2), (pad_h_1, pad_h_2), (pad_w_1, pad_w_2)),
-                            mode='constant',
-                            constant_values=0)
-        return output
 
     def load_and_shape_data(self, path_to_load):
         """ Reshapes data that is stored as vectors into matrices
@@ -377,19 +337,21 @@ class KBPDataset(data.Dataset):
             oar += shaped_data["structure_masks"][i,...]
         oar = np.expand_dims(np.clip(oar,0,1),0)
 
-        coarse_dose_root = "/public/bme/home/v-tenglin/BDCLDosePrediction/Data/coarse_data/"
+        # load the coarse dose from the first stage 
+        coarse_dose_root = "Data/coarse_data/"
         # coarse_dose = np.fliplr(np.expand_dims(sitk.GetArrayFromImage(sitk.ReadImage(coarse_dose_root)),0))
         coarse_dose = np.fliplr(np.expand_dims(sitk.GetArrayFromImage(sitk.ReadImage(coarse_dose_root + "pred_" + path_to_load.split("/")[-1] + ".nii.gz")),0))
         
         # coarse_dose = (coarse_dose - coarse_dose.min()) / (coarse_dose.max() - coarse_dose.min())
 
-        directionmap = np.zeros((9,128,128,128))
-        directions_root = "/public/bme/home/v-tenglin/BDCLDosePrediction/Data/direction/"
-        for i in range(directionmap.shape[0]):
-            directionmap[i,...] = sitk.GetArrayFromImage(sitk.ReadImage(directions_root + path_to_load.split("/")[-1] + "_d1"+"_{}".format(i+1) + ".nii.gz" ))
+        # load the reconstructed nine beam masks  
+        # directionmap = np.zeros((9,128,128,128)) 
+        # directions_root = "Data/direction/" 
+        # for i in range(directionmap.shape[0]): 
+        #     directionmap[i,...] = sitk.GetArrayFromImage(sitk.ReadImage(directions_root + path_to_load.split("/")[-1] + "_d1"+"_{}".format(i+1) + ".nii.gz" )) 
 
-        '''
-        directionmap = np.zeros((9,128,128,128))
+        # reconstruct the nine beam masks 
+        directionmap = np.zeros((9,128,128,128)) 
 
         zmin = np.where(ptv[0,...] != 0)[0].min(); zmax = np.where(ptv[0,...] != 0)[0].max()
         for i in range(directionmap.shape[1]):
@@ -405,7 +367,7 @@ class KBPDataset(data.Dataset):
             # if edges.min() == False:
             #     print('min:',path_to_load.split("/")[-1])
             directionmap[:,i,:,:] = self.drawline(directionmap[:,i,:,:], [0,40,80,120,160,200,240,280,320], edges, path_to_load.split("/")[-1])
-        '''
+        
 
         return shaped_data, ptv, oar, coarse_dose, directionmap
 
@@ -430,129 +392,13 @@ class KBPDataset(data.Dataset):
                     directionmap[idx,x,kk] = 1
         return directionmap
 
-    def cal_distance_ct_ptv(self, ptv, ct, ptv_bound, coordinate):
-        bounds = np.array(coordinate)
-        # print('bounds:',bounds.shape)
-        tree = neighbors.KDTree(bounds, leaf_size=bounds.shape[0] / 2)
-
-        # bounds_1 = np.array(coordinate_1)
-        # tree_1 = neighbors.KDTree(bounds_1, leaf_size=bounds_1.shape[0] / 2)
-        # calculate distance between ct and ptv
-        ct_nonzero = np.nonzero(ct)
-        m = []
-        for i in range(ct_nonzero[1].size):
-            m.append([ct_nonzero[1][i], ct_nonzero[2][i], ct_nonzero[3][i]])
-        '''
-        m = np.mgrid[0:128, 0:128, 0:128].reshape(3, -1).transpose()
-        '''
-
-        dist_ct_ptv, ind = tree.query(m, k=1)
-        # dist_ct_oar, ind_1 = tree_1.query(m, k=1)
-
-        dist_ct_ptv = (dist_ct_ptv - min(dist_ct_ptv)) / (max(dist_ct_ptv) - min(dist_ct_ptv))
-
-        # generate distance numpy
-        dis_ct_ptv = np.zeros((128, 128, 128, 1), dtype=np.float32)
-        c = 0
-        for i in m:
-            # if oar[0, i[0], i[1], i[2]] != 0:
-            #     dis_ct_ptv[i[0], i[1], i[2]] = -dist_ct_ptv[c]
-            if ptv[0, i[0], i[1], i[2]] != 0:
-                dis_ct_ptv[i[0], i[1], i[2]] = 1
-            else:
-                dis_ct_ptv[i[0], i[1], i[2]] = (1-dist_ct_ptv[c])*0.7
-            c += 1
-        dis_ct_ptv = dis_ct_ptv.transpose((3,0,1,2))
-        return np.clip(dis_ct_ptv, 0,1)
-
-    def resample_image(self, in_arr, spacing, rotate, linear_interpolate, flip_x, flip_z):
-        out_arr = np.zeros_like(in_arr)
-        size = in_arr.shape[1:4]
-        center = size * spacing * 0.5
-        imagetype = itk.Image[itk.F, 3]
-
-        if rotate == 0:
-            transform = itk.IdentityTransform[itk.D, 3].New()
-        else:
-            transform = itk.Euler3DTransform[itk.D].New()
-            transform.SetCenter((center[2], center[1], center[0]))
-            transform.SetRotation(0, 0, rotate * 3.141592654 / 180)
-
-        for i in range(in_arr.shape[0]):
-            image = itk.GetImageFromArray(in_arr[i, :])
-            image.SetSpacing((spacing[2], spacing[1], spacing[0]))
-            resampler = itk.ResampleImageFilter[imagetype, imagetype].New()
-            resampler.SetInput(image)
-            resampler.SetSize(image.GetBufferedRegion().GetSize())
-            resampler.SetOutputSpacing(image.GetSpacing())
-            resampler.SetOutputOrigin(image.GetOrigin())
-            resampler.SetTransform(transform)
-            if linear_interpolate:
-                resampler.SetInterpolator(itk.LinearInterpolateImageFunction[imagetype, itk.D].New())
-            else:
-                resampler.SetInterpolator(itk.NearestNeighborInterpolateImageFunction[imagetype, itk.D].New())
-            resampler.SetDefaultPixelValue(0)
-            resampler.Update()
-            image = resampler.GetOutput()
-            image_array = itk.GetArrayFromImage(image)
-            out_arr[i, :] = image_array
-
-        if flip_x:
-            out_arr = np.ascontiguousarray(np.flip(out_arr, axis=3))
-        if flip_z:
-            out_arr = np.ascontiguousarray(np.flip(out_arr, axis=1))
-
-        return out_arr
-
-    def rescale_image(self, in_arr, spacing, rescale_factor, linear_interpolate=True, flip=False):
-        out_arr = np.zeros_like(in_arr)
-        imagetype = itk.Image[itk.F, 3]
-        size = np.zeros(3, dtype=np.int32)
-        size[0] = in_arr.shape[3]
-        size[1] = in_arr.shape[2]
-        size[2] = in_arr.shape[1]
-        src_spacing = np.zeros(3, dtype=np.float32)
-        src_spacing[0] = spacing[2]
-        src_spacing[1] = spacing[1]
-        src_spacing[2] = spacing[0]
-        src_origin = np.zeros(3, dtype=np.float32)
-        dst_spacing = rescale_factor * src_spacing
-        dst_origin = src_origin + 0.5 * src_spacing * size - 0.5 * dst_spacing * size
-        for i in range(in_arr.shape[0]):
-            src_image = itk.GetImageFromArray(in_arr[i, :])
-            src_image.SetOrigin((float(src_origin[0]), float(src_origin[1]), float(src_origin[2])))
-            src_image.SetSpacing((float(src_spacing[0]), float(src_spacing[1]), float(src_spacing[2])))
-            resampler = itk.ResampleImageFilter[imagetype, imagetype].New()  # 图像重采样
-            resampler.SetInput(src_image)
-            resampler.SetSize((int(size[0]), int(size[1]), int(size[2])))
-            resampler.SetOutputSpacing((float(dst_spacing[0]), float(dst_spacing[1]), float(dst_spacing[2])))
-            resampler.SetOutputOrigin((float(dst_origin[0]), float(dst_origin[1]), float(dst_origin[2])))
-            resampler.SetTransform(itk.IdentityTransform[itk.D, 3].New())
-            if linear_interpolate:
-                resampler.SetInterpolator(itk.LinearInterpolateImageFunction[imagetype, itk.D].New())
-            else:
-                resampler.SetInterpolator(itk.NearestNeighborInterpolateImageFunction[imagetype, itk.D].New())
-            resampler.SetDefaultPixelValue(0)
-            resampler.Update()
-            dst_image = resampler.GetOutput()
-            dst_image = itk.GetArrayFromImage(dst_image)
-            # dst_image = itk.GetImageFromArray(dst_image)
-            # dst_image.SetOrigin(src_image.GetOrigin())
-            # dst_image.SetSpacing(src_image.GetSpacing())
-            out_arr[i, :] = dst_image
-
-        if flip:
-            np.flip(out_arr, axis=3)
-
-        return out_arr
-
 
 # if __name__ == '__main__':
 #     import time
 #     print("Start")
 #     starttime = time.time()
 
-#     dataset_train = KBPDataset(get_paths('/public/bme/home/v-tenglin/BDCLDosePrediction/Data/test'), flipped=False, rotate=False, noise=False, deformation=False, ct_range=[-400, 2400])
+#     dataset_train = KBPDataset(get_paths('Data/test'), flipped=False, rotate=False, noise=False, deformation=False, ct_range=[-400, 400])
 #     data_loader_train = data.DataLoader(
 #         dataset=dataset_train, batch_size=1, shuffle=False, pin_memory=True, drop_last=False, num_workers=0)
     
@@ -560,9 +406,9 @@ class KBPDataset(data.Dataset):
 #         print(data['patient_id'])
     
 #     endtime = time.time()   
-
+ 
 #     print("\nthis is the size of the dataset", len(dataset_train)) 
-#     dtime = endtime - starttime
+#     dtime = endtime - starttime 
 
-#     print("time: %.8s s" % dtime)  #显示到微秒
+#     print("time: %.8s s" % dtime)  #显示到微秒 
 
