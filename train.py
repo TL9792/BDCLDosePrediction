@@ -47,7 +47,7 @@ if __name__ == '__main__':
     lr = 1e-4
     num_workers = 0
     dose_scale_factor = 80.0
-    ct_range = [-400,400]
+    ct_range = [600,1400]
     en = RUnet_encoder(13,9,16)
     de = RUnet_decoder(13,9,16)
     model = RUNet(en,de)
