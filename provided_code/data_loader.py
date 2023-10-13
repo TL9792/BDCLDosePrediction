@@ -34,7 +34,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 class KBPDataset(data.Dataset):
     """Generates data for tensorflow"""
 
-    def __init__(self, file_paths_list, flipped=False, rotate=False, noise=False, deformation=False, patient_shape=(128, 128, 128), ct_range=[-400, 400],
+    def __init__(self, file_paths_list, flipped=False, rotate=False, noise=False, deformation=False, patient_shape=(128, 128, 128), ct_range=[600, 1400],
                  shuffle=True, mode_name='training_model'):
         """Initialize the DataLoader class, which loads the data for OpenKBP
         :param file_paths_list: list of the directories or single files where data for each patient is stored
