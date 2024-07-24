@@ -11,7 +11,17 @@ Dose score  |  DVH score
 ----  |  ----
 2.066±0.900  |  0.977±1.091  
 
- 
+## Cite
+@article{teng2024beam,
+  title={Beam-wise dose composition learning for head and neck cancer dose prediction in radiotherapy},
+  author={Teng, Lin and Wang, Bin and Xu, Xuanang and Zhang, Jiadong and Mei, Lanzhuju and Feng, Qianjin and Shen, Dinggang},
+  journal={Medical Image Analysis},
+  volume={92},
+  pages={103045},
+  year={2024},
+  publisher={Elsevier}
+}
+
 ## Contact  
 Please email us with any questions for free, email: tenglin2023@shanghaitech.edu.cn.
 
