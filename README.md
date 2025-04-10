@@ -24,6 +24,3 @@ Dose score  |  DVH score
 }
 ```
 
-## Contact  
-Please email us with any questions for free, email: tl1963373350@163.com.
-
